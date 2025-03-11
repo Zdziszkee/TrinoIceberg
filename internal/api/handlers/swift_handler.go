@@ -4,8 +4,8 @@ import (
 	"strings"
 
 	"github.com/gofiber/fiber/v3"
-	models "github.com/zdziszkee/swift-codes/internal/model"
-	"github.com/zdziszkee/swift-codes/internal/service"
+	models "github.com/zdziszkee/swift-codes/internal/models"
+	service "github.com/zdziszkee/swift-codes/internal/services"
 )
 
 // SwiftHandler handles API requests for SWIFT codes

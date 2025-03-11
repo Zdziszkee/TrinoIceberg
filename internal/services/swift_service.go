@@ -6,8 +6,8 @@ import (
 	"regexp"
 	"strings"
 
-	models "github.com/zdziszkee/swift-codes/internal/model"
-	"github.com/zdziszkee/swift-codes/internal/repository"
+	models "github.com/zdziszkee/swift-codes/internal/models"
+	repository "github.com/zdziszkee/swift-codes/internal/repositories"
 )
 
 var (
@@ -89,23 +89,16 @@ func (s *swiftService) CreateSwiftCode(ctx context.Context, bank *models.SwiftBa
 		return ErrInvalidInput
 	}
 
-	// Ensure SWIFT code is uppercase
+	// Ensure SWIFT code and country code are uppercase
 	bank.SwiftCode = strings.ToUpper(bank.SwiftCode)
 	bank.CountryISOCode = strings.ToUpper(bank.CountryISOCode)
 
-	// Set the entity type if not set
-	if bank.EntityType == "" {
-		// Default to branch, unless code ends with XXX
-		if strings.HasSuffix(bank.SwiftCode, "XXX") {
-			bank.EntityType = models.Headquarters
-		} else {
-			bank.EntityType = models.Branch
-		}
-	}
+	// Set headquarter flag based on SWIFT code suffix
+	bank.IsHeadquarter = strings.HasSuffix(bank.SwiftCode, "XXX")
 
-	// Set HQ base if not set
-	if bank.HQSwiftBase == "" {
-		bank.HQSwiftBase = bank.SwiftCode[:8]
+	// Set SwiftCodeBase if not set
+	if bank.SwiftCodeBase == "" {
+		bank.SwiftCodeBase = bank.SwiftCode[:8]
 	}
 
 	err := s.repo.Create(ctx, bank)

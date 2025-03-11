@@ -3,63 +3,22 @@ package main
 import (
 	"context"
 	"flag"
-	"fmt"
 	"log"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
 
-	"github.com/zdziszkee/swift-codes/internal/api/handler"
+	handler "github.com/zdziszkee/swift-codes/internal/api/handlers"
 	"github.com/zdziszkee/swift-codes/internal/api/router"
-	config "github.com/zdziszkee/swift-codes/internal/configuration"
+	config "github.com/zdziszkee/swift-codes/internal/configurations"
 	"github.com/zdziszkee/swift-codes/internal/database"
-	model "github.com/zdziszkee/swift-codes/internal/model" // Add this import
-	"github.com/zdziszkee/swift-codes/internal/parser"
-	"github.com/zdziszkee/swift-codes/internal/repository"
-	"github.com/zdziszkee/swift-codes/internal/service"
+	"github.com/zdziszkee/swift-codes/internal/models"
+	parser "github.com/zdziszkee/swift-codes/internal/parsers"
+	csvreader "github.com/zdziszkee/swift-codes/internal/readers/csv"
+	repository "github.com/zdziszkee/swift-codes/internal/repositories"
+	service "github.com/zdziszkee/swift-codes/internal/services"
 )
-
-// loadSwiftCodesFromFile loads SWIFT codes from a CSV file into the database
-func loadSwiftCodesFromFile(ctx context.Context, filePath string, repo repository.SwiftRepository) (int, error) {
-	startTime := time.Now()
-
-	file, err := os.Open(filePath)
-	if err != nil {
-		return 0, fmt.Errorf("failed to open file %s: %w", filePath, err)
-	}
-	defer file.Close()
-
-	swiftParser := parser.NewCSVSwiftParser()
-	swiftBanks, err := swiftParser.ParseSwiftData(file)
-	if err != nil {
-		return 0, fmt.Errorf("failed to parse SWIFT data: %w", err)
-	}
-
-	const batchSize = 20000
-	loadedCount := 0
-	batch := make([]*model.SwiftBank, 0, batchSize)
-
-	for i, bank := range swiftBanks {
-		localBank := bank
-		batch = append(batch, &localBank)
-
-		if len(batch) == batchSize || i == len(swiftBanks)-1 {
-			fmt.Printf("Inserting batch of %d rows at %v\n", len(batch), time.Now())
-			err := repo.CreateBatch(ctx, batch)
-			if err != nil {
-				fmt.Printf("Error inserting batch of %d SWIFT codes: %v\n", len(batch), err)
-			} else {
-				loadedCount += len(batch)
-			}
-			batch = batch[:0]
-		}
-	}
-
-	duration := time.Since(startTime)
-	fmt.Printf("Loaded %d of %d SWIFT codes in %v\n", loadedCount, len(swiftBanks), duration)
-	return loadedCount, nil
-}
 
 func main() {
 	// Parse command line flags
@@ -101,11 +60,39 @@ func main() {
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
 		defer cancel()
 
-		count, err := loadSwiftCodesFromFile(ctx, cfg.Data.SwiftCodesFile, repo)
+		// Open the CSV file
+		file, err := os.Open(cfg.Data.SwiftCodesFile)
 		if err != nil {
-			log.Printf("WARNING: Failed to load SWIFT codes: %v", err)
+			log.Printf("WARNING: Failed to open SWIFT codes file: %v", err)
 		} else {
-			log.Printf("Successfully loaded %d SWIFT codes", count)
+			defer file.Close()
+
+			// Load SWIFT bank records from CSV
+			reader := csvreader.CSVSwiftBanksReader{}
+			records, err := reader.LoadSwiftBanks(file)
+			if err != nil {
+				log.Printf("WARNING: Failed to read CSV file: %v", err)
+			} else {
+				// Parse the records into SwiftBank models
+				defaultParser := parser.DefaultSwiftBanksParser{}
+				banks, err := defaultParser.ParseSwiftBanks(records)
+				if err != nil {
+					log.Printf("WARNING: Failed to parse SWIFT bank records: %v", err)
+				} else {
+					// Convert banks slice to a slice of pointers to models.SwiftBank
+					var bankPtrs []*models.SwiftBank
+					for i := range banks {
+						bankPtrs = append(bankPtrs, &banks[i])
+					}
+					// Create banks in batches
+					err = repo.CreateBatch(ctx, bankPtrs)
+					if err != nil {
+						log.Printf("WARNING: Failed to load SWIFT codes into database: %v", err)
+					} else {
+						log.Printf("Successfully loaded %d SWIFT codes", len(bankPtrs))
+					}
+				}
+			}
 		}
 	}
 
