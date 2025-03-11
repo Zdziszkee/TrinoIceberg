@@ -85,7 +85,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to initialize database: %v", err)
 	}
-	defer db.Close()
+	defer db.DB.Close()
 
 	// Initialize repository
 	repo := repository.NewSQLSwiftRepository(db)
