@@ -1,0 +1,4 @@
+trino-data
+.DS_Store
+warehouse/
+derby-data

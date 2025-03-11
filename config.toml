@@ -1,0 +1,20 @@
+app_name = "swift-codes"
+
+[log]
+level = "info"
+format = "text"
+
+[database]
+type = "trino"
+host = "trino"
+port = 8080
+catalog = "swift_catalog"
+schema = "default_schema"
+username = ""
+max_open_conns = 5
+max_idle_conns = 2
+conn_max_lifetime = "1h"
+
+[data]
+swift_codes_file = "swift_codes.csv"
+auto_load = true

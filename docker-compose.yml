@@ -1,0 +1,42 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8081:8080"
+    depends_on:
+      - trino
+    command: >
+      /bin/sh -c "until nc -z trino 8080; do echo 'Waiting for Trino to be ready...'; sleep 2; done && /app/swiftcodes"
+    networks:
+      - trino-iceberg-network
+
+  metastore:
+    image: apache/hive:4.0.1
+    environment:
+      SERVICE_NAME: metastore
+    volumes:
+      - ./derby-data:/derby-data
+      - ./warehouse:/warehouse
+    ports:
+      - "9083:9083"
+    networks:
+      - trino-iceberg-network
+
+  trino:
+    image: trinodb/trino:latest
+    depends_on:
+      - metastore
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./etc/trino:/etc/trino
+      - ./password.db:/password.db
+      - ./warehouse:/warehouse
+    networks:
+      - trino-iceberg-network
+
+networks:
+  trino-iceberg-network:
+    driver: bridge
