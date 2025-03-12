@@ -104,8 +104,8 @@ func main() {
 
 	// Start server in a goroutine so we can handle graceful shutdown
 	go func() {
-		log.Printf("Starting server on port 8080")
-		if err := app.Listen(":8080"); err != nil {
+		log.Printf("Starting server on port 8081")
+		if err := app.Listen(":8081"); err != nil {
 			log.Fatalf("Server error: %v", err)
 		}
 	}()

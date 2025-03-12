@@ -1,7 +1,7 @@
 package parser
 
 import (
-	"fmt"
+	"log"
 	"regexp"
 	"strings"
 
@@ -23,41 +23,52 @@ func (p DefaultSwiftBanksParser) ParseSwiftBanks(swiftBankRecords []readers.Swif
 	for _, record := range swiftBankRecords {
 		// --- Enhanced Content Validations ---
 		if record.SwiftCode == "" {
-			return nil, fmt.Errorf("validation error: SwiftCode cannot be empty for record with Index %d", record.Index)
+			log.Printf("Validation error at index %d: SwiftCode cannot be empty", record.Index)
+			continue
 		}
 		if !bicRegex.MatchString(record.SwiftCode) {
-			return nil, fmt.Errorf("validation error: SwiftCode '%s' at Index %d does not match BIC format", record.SwiftCode, record.Index)
+			log.Printf("Validation error at index %d: SwiftCode '%s' does not match BIC format", record.Index, record.SwiftCode)
+			continue
 		}
 		if len(record.SwiftCode) > 15 { // Example: Max length for SwiftCode
-			return nil, fmt.Errorf("validation error: SwiftCode '%s' at Index %d exceeds maximum length", record.SwiftCode, record.Index)
+			log.Printf("Validation error at index %d: SwiftCode '%s' exceeds maximum length", record.Index, record.SwiftCode)
+			continue
 		}
 
 		if record.BankName == "" {
-			return nil, fmt.Errorf("validation error: BankName cannot be empty for SwiftCode '%s'", record.SwiftCode)
+			log.Printf("Validation error for SwiftCode '%s': BankName cannot be empty", record.SwiftCode)
+			continue
 		}
 		if len(record.BankName) > 100 { // Example: Max length for BankName
-			return nil, fmt.Errorf("validation error: BankName '%s' for SwiftCode '%s' exceeds maximum length", record.BankName, record.SwiftCode)
+			log.Printf("Validation error for SwiftCode '%s': BankName '%s' exceeds maximum length", record.SwiftCode, record.BankName)
+			continue
 		}
 
 		if record.CountryISOCode == "" {
-			return nil, fmt.Errorf("validation error: CountryISOCode cannot be empty for SwiftCode '%s'", record.SwiftCode)
+			log.Printf("Validation error for SwiftCode '%s': CountryISOCode cannot be empty", record.SwiftCode)
+			continue
 		}
 		if !countryCodeRegex.MatchString(record.CountryISOCode) {
-			return nil, fmt.Errorf("validation error: CountryISOCode '%s' for Bank '%s' does not match ISO2 format", record.CountryISOCode, record.BankName)
+			log.Printf("Validation error for Bank '%s': CountryISOCode '%s' does not match ISO2 format", record.BankName, record.CountryISOCode)
+			continue
 		}
 
 		if record.Address == "" {
-			return nil, fmt.Errorf("validation error: Address cannot be empty for SwiftCode '%s'", record.SwiftCode)
+			log.Printf("Validation error for SwiftCode '%s': Address cannot be empty", record.SwiftCode)
+			continue
 		}
 		if len(record.Address) > 200 { // Example: Max length for Address
-			return nil, fmt.Errorf("validation error: Address for SwiftCode '%s' exceeds maximum length", record.SwiftCode)
+			log.Printf("Validation error for SwiftCode '%s': Address exceeds maximum length", record.SwiftCode)
+			continue
 		}
 
 		if record.CountryName == "" {
-			return nil, fmt.Errorf("validation error: CountryName cannot be empty for SwiftCode '%s'", record.SwiftCode)
+			log.Printf("Validation error for SwiftCode '%s': CountryName cannot be empty", record.SwiftCode)
+			continue
 		}
 		if len(record.CountryName) > 100 { // Example: Max length for CountryName
-			return nil, fmt.Errorf("validation error: CountryName '%s' for Bank '%s' exceeds maximum length", record.CountryName, record.BankName)
+			log.Printf("Validation error for SwiftCode '%s': CountryName '%s' exceeds maximum length", record.SwiftCode, record.BankName)
+			continue
 		}
 
 		// --- Determine IsHeadquarter in Parser ---

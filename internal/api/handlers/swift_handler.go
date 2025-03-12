@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"log"
 	"strings"
 
 	"github.com/gofiber/fiber/v3"
@@ -19,14 +20,18 @@ func NewSwiftHandler(service service.SwiftService) *SwiftHandler {
 }
 
 // GetByCode handles requests for a specific SWIFT code
+
 func (h *SwiftHandler) GetByCode(c fiber.Ctx) error {
-	code := strings.ToUpper(c.Params("swift-code"))
+	code := strings.ToUpper(c.Params("swiftCode"))
+	log.Printf("INFO: GetByCode called with swift-code: %s", code)
 
 	bank, err := h.service.GetSwiftCodeDetails(c.Context(), code)
 	if err != nil {
+		log.Printf("INFO: Error retrieving SWIFT code details for %s: %v", code, err)
 		return handleError(c, err)
 	}
 
+	log.Printf("INFO: Successfully retrieved SWIFT code details for %s", code)
 	return c.Status(fiber.StatusOK).JSON(bank)
 }
 
@@ -64,7 +69,7 @@ func (h *SwiftHandler) Create(c fiber.Ctx) error {
 
 // Delete handles deletion of a SWIFT code
 func (h *SwiftHandler) Delete(c fiber.Ctx) error {
-	code := strings.ToUpper(c.Params("swift-code"))
+	code := strings.ToUpper(c.Params("swiftCode"))
 
 	err := h.service.DeleteSwiftCode(c.Context(), code)
 	if err != nil {

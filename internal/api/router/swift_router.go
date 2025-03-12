@@ -32,10 +32,9 @@ func SetupRoutes(swiftHandler *handler.SwiftHandler) *fiber.App {
 	v1 := app.Group("/v1")
 
 	// SWIFT codes endpoints
-	v1.Get("/swift-codes/:swift-code", swiftHandler.GetByCode)
+	v1.Get("/swiftCodes/:swiftCode", swiftHandler.GetByCode)
 	v1.Get("/swift-codes/country/:countryISO2code", swiftHandler.GetByCountry)
-	v1.Post("/swift-codes", swiftHandler.Create)
-	v1.Delete("/swift-codes/:swift-code", swiftHandler.Delete)
-
+	v1.Post("/swiftCodes", swiftHandler.Create)
+	v1.Delete("/swiftCodes/:swiftCode", swiftHandler.Delete)
 	return app
 }

@@ -54,7 +54,7 @@ func (c *CSVSwiftBanksReader) LoadSwiftBanks(reader io.Reader) ([]readers.SwiftB
 		if err != nil {
 			return nil, fmt.Errorf("row %d: %w", rowNum, err)
 		}
-		if len(row) != 5 {
+		if len(row) != len(expectedHeaders) {
 			return nil, fmt.Errorf("row %d: invalid length", rowNum)
 		}
 

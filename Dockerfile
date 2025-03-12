@@ -16,5 +16,6 @@ COPY config.toml /app/
 COPY swift_codes.csv /app/
 
 EXPOSE 8080
+EXPOSE 8081
 
 CMD ["/app/swiftcodes"]
