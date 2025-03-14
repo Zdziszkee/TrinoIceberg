@@ -20,51 +20,6 @@ func TestServices(t *testing.T) {
 	RunSpecs(t, "Services Suite")
 }
 
-// MockSwiftRepository implements the SwiftRepository interface for testing
-type MockSwiftRepository struct {
-	GetByCodeFunc           func(ctx context.Context, code string) (*repository.SwiftBankDetail, error)
-	GetByCountryFunc        func(ctx context.Context, countryCode string) (*repository.CountrySwiftCodes, error)
-	CreateFunc              func(ctx context.Context, bank *models.SwiftBank) error
-	CreateBatchFunc         func(ctx context.Context, banks []*models.SwiftBank) error
-	DeleteFunc              func(ctx context.Context, code string) error
-	GetBranchesByHQBaseFunc func(ctx context.Context, hqBase string) ([]models.SwiftBank, error)
-	LoadCSVFunc             func(ctx context.Context, file string) error
-}
-
-func (m *MockSwiftRepository) GetByCode(ctx context.Context, code string) (*repository.SwiftBankDetail, error) {
-	return m.GetByCodeFunc(ctx, code)
-}
-
-func (m *MockSwiftRepository) GetByCountry(ctx context.Context, countryCode string) (*repository.CountrySwiftCodes, error) {
-	return m.GetByCountryFunc(ctx, countryCode)
-}
-
-func (m *MockSwiftRepository) Create(ctx context.Context, bank *models.SwiftBank) error {
-	return m.CreateFunc(ctx, bank)
-}
-
-func (m *MockSwiftRepository) CreateBatch(ctx context.Context, banks []*models.SwiftBank) error {
-	return m.CreateBatchFunc(ctx, banks)
-}
-
-func (m *MockSwiftRepository) Delete(ctx context.Context, code string) error {
-	return m.DeleteFunc(ctx, code)
-}
-
-func (m *MockSwiftRepository) GetBranchesByHQBase(ctx context.Context, hqBase string) ([]models.SwiftBank, error) {
-	if m.GetBranchesByHQBaseFunc != nil {
-		return m.GetBranchesByHQBaseFunc(ctx, hqBase)
-	}
-	return nil, errors.New("GetBranchesByHQBase not implemented")
-}
-
-func (m *MockSwiftRepository) LoadCSV(ctx context.Context, file string) error {
-	if m.LoadCSVFunc != nil {
-		return m.LoadCSVFunc(ctx, file)
-	}
-	return errors.New("LoadCSV not implemented")
-}
-
 // compareErrors compares two errors by their string representation
 func compareErrors(err1, err2 error) bool {
 	if err1 == nil && err2 == nil {
@@ -88,7 +43,7 @@ var _ = Describe("SwiftService", func() {
 	Describe("GetSwiftCodeDetails", func() {
 		Context("when called with a valid SWIFT code", func() {
 			It("should return the bank details", func() {
-				repo := &MockSwiftRepository{
+				repo := &mocks.MockSwiftRepository{
 					GetByCodeFunc: func(ctx context.Context, code string) (*repository.SwiftBankDetail, error) {
 						return &repository.SwiftBankDetail{
 							Bank:     models.SwiftBank{SwiftCode: "ABCDUS33XXX"},
@@ -110,7 +65,7 @@ var _ = Describe("SwiftService", func() {
 
 		Context("when called with an invalid SWIFT code", func() {
 			It("should return an invalid input error", func() {
-				repo := &MockSwiftRepository{}
+				repo := &mocks.MockSwiftRepository{}
 				s := service.NewSwiftService(repo)
 
 				_, err := s.GetSwiftCodeDetails(ctx, "ABC123")
@@ -121,7 +76,7 @@ var _ = Describe("SwiftService", func() {
 
 		Context("when the code is not found", func() {
 			It("should return not found error", func() {
-				repo := &MockSwiftRepository{
+				repo := &mocks.MockSwiftRepository{
 					GetByCodeFunc: func(ctx context.Context, code string) (*repository.SwiftBankDetail, error) {
 						return nil, repository.ErrNotFound
 					},
@@ -137,7 +92,7 @@ var _ = Describe("SwiftService", func() {
 		Context("when repository returns an error", func() {
 			It("should return the error", func() {
 				expectedError := errors.New("db error")
-				repo := &MockSwiftRepository{
+				repo := &mocks.MockSwiftRepository{
 					GetByCodeFunc: func(ctx context.Context, code string) (*repository.SwiftBankDetail, error) {
 						return nil, expectedError
 					},
@@ -152,7 +107,7 @@ var _ = Describe("SwiftService", func() {
 
 		Context("when called with a valid 8-character SWIFT code", func() {
 			It("should return the bank details", func() {
-				repo := &MockSwiftRepository{
+				repo := &mocks.MockSwiftRepository{
 					GetByCodeFunc: func(ctx context.Context, code string) (*repository.SwiftBankDetail, error) {
 						return &repository.SwiftBankDetail{
 							Bank:     models.SwiftBank{SwiftCode: "ABCDUS33"},
@@ -176,7 +131,7 @@ var _ = Describe("SwiftService", func() {
 	Describe("GetSwiftCodesByCountry", func() {
 		Context("when called with a valid country code", func() {
 			It("should return the country codes", func() {
-				repo := &MockSwiftRepository{
+				repo := &mocks.MockSwiftRepository{
 					GetByCountryFunc: func(ctx context.Context, countryCode string) (*repository.CountrySwiftCodes, error) {
 						return &repository.CountrySwiftCodes{
 							SwiftCodes: []models.SwiftBank{},
@@ -196,7 +151,7 @@ var _ = Describe("SwiftService", func() {
 
 		Context("when called with an invalid country code", func() {
 			It("should return an invalid input error", func() {
-				repo := &MockSwiftRepository{}
+				repo := &mocks.MockSwiftRepository{}
 				s := service.NewSwiftService(repo)
 
 				_, err := s.GetSwiftCodesByCountry(ctx, "USA")
@@ -207,7 +162,7 @@ var _ = Describe("SwiftService", func() {
 
 		Context("when called with an empty country code", func() {
 			It("should return an invalid input error", func() {
-				repo := &MockSwiftRepository{}
+				repo := &mocks.MockSwiftRepository{}
 				s := service.NewSwiftService(repo)
 
 				_, err := s.GetSwiftCodesByCountry(ctx, "")
@@ -218,7 +173,7 @@ var _ = Describe("SwiftService", func() {
 
 		Context("when the country code is not found", func() {
 			It("should return not found error", func() {
-				repo := &MockSwiftRepository{
+				repo := &mocks.MockSwiftRepository{
 					GetByCountryFunc: func(ctx context.Context, countryCode string) (*repository.CountrySwiftCodes, error) {
 						return nil, repository.ErrNotFound
 					},
@@ -234,7 +189,7 @@ var _ = Describe("SwiftService", func() {
 		Context("when repository returns an error", func() {
 			It("should return the error", func() {
 				expectedError := errors.New("db error")
-				repo := &MockSwiftRepository{
+				repo := &mocks.MockSwiftRepository{
 					GetByCountryFunc: func(ctx context.Context, countryCode string) (*repository.CountrySwiftCodes, error) {
 						return nil, expectedError
 					},
@@ -249,7 +204,7 @@ var _ = Describe("SwiftService", func() {
 
 		Context("when called with a lowercase country code", func() {
 			It("should convert and return the codes", func() {
-				repo := &MockSwiftRepository{
+				repo := &mocks.MockSwiftRepository{
 					GetByCountryFunc: func(ctx context.Context, countryCode string) (*repository.CountrySwiftCodes, error) {
 						countryCode = strings.ToUpper(countryCode)
 						if countryCode == "US" {
@@ -275,7 +230,7 @@ var _ = Describe("SwiftService", func() {
 	Describe("CreateSwiftCode", func() {
 		Context("when called with a valid bank", func() {
 			It("should create the bank", func() {
-				repo := &MockSwiftRepository{
+				repo := &mocks.MockSwiftRepository{
 					CreateFunc: func(ctx context.Context, bank *models.SwiftBank) error { return nil },
 				}
 
@@ -293,7 +248,7 @@ var _ = Describe("SwiftService", func() {
 
 		Context("when called with an invalid SWIFT code", func() {
 			It("should return an invalid input error", func() {
-				repo := &MockSwiftRepository{}
+				repo := &mocks.MockSwiftRepository{}
 				s := service.NewSwiftService(repo)
 
 				bank := &models.SwiftBank{SwiftCode: "ABC123", CountryISOCode: "US", BankName: "Test Bank"}
@@ -305,7 +260,7 @@ var _ = Describe("SwiftService", func() {
 
 		Context("when called with an invalid country code", func() {
 			It("should return an invalid input error", func() {
-				repo := &MockSwiftRepository{}
+				repo := &mocks.MockSwiftRepository{}
 				s := service.NewSwiftService(repo)
 
 				bank := &models.SwiftBank{SwiftCode: "ABCDUS33XXX", CountryISOCode: "USA", BankName: "Test Bank"}
@@ -317,7 +272,7 @@ var _ = Describe("SwiftService", func() {
 
 		Context("when called with an empty bank name", func() {
 			It("should return an invalid input error", func() {
-				repo := &MockSwiftRepository{}
+				repo := &mocks.MockSwiftRepository{}
 				s := service.NewSwiftService(repo)
 
 				bank := &models.SwiftBank{SwiftCode: "ABCDUS33XXX", CountryISOCode: "US", BankName: ""}
@@ -329,7 +284,7 @@ var _ = Describe("SwiftService", func() {
 
 		Context("when the SWIFT code already exists", func() {
 			It("should return an already exists error", func() {
-				repo := &MockSwiftRepository{
+				repo := &mocks.MockSwiftRepository{
 					CreateFunc: func(ctx context.Context, bank *models.SwiftBank) error {
 						return repository.ErrDuplicate
 					},
@@ -345,7 +300,7 @@ var _ = Describe("SwiftService", func() {
 
 		Context("when bank is nil", func() {
 			It("should return an invalid input error", func() {
-				repo := &MockSwiftRepository{}
+				repo := &mocks.MockSwiftRepository{}
 				s := service.NewSwiftService(repo)
 
 				err := s.CreateSwiftCode(ctx, nil)
@@ -357,7 +312,7 @@ var _ = Describe("SwiftService", func() {
 		Context("when repository returns an error", func() {
 			It("should return the error", func() {
 				expectedError := errors.New("db error")
-				repo := &MockSwiftRepository{
+				repo := &mocks.MockSwiftRepository{
 					CreateFunc: func(ctx context.Context, bank *models.SwiftBank) error {
 						return expectedError
 					},
@@ -373,7 +328,7 @@ var _ = Describe("SwiftService", func() {
 
 		Context("when called with lowercase codes", func() {
 			It("should convert them to uppercase", func() {
-				repo := &MockSwiftRepository{
+				repo := &mocks.MockSwiftRepository{
 					CreateFunc: func(ctx context.Context, bank *models.SwiftBank) error {
 						if bank.SwiftCode != "ABCDUS33XXX" || bank.CountryISOCode != "US" {
 							return errors.New("codes not properly uppercased")
@@ -396,7 +351,7 @@ var _ = Describe("SwiftService", func() {
 	Describe("DeleteSwiftCode", func() {
 		Context("when called with a valid SWIFT code", func() {
 			It("should delete the bank", func() {
-				repo := &MockSwiftRepository{
+				repo := &mocks.MockSwiftRepository{
 					DeleteFunc: func(ctx context.Context, code string) error { return nil },
 				}
 
@@ -409,7 +364,7 @@ var _ = Describe("SwiftService", func() {
 
 		Context("when called with an invalid SWIFT code", func() {
 			It("should return an invalid input error", func() {
-				repo := &MockSwiftRepository{}
+				repo := &mocks.MockSwiftRepository{}
 				s := service.NewSwiftService(repo)
 
 				err := s.DeleteSwiftCode(ctx, "ABC123")
@@ -420,7 +375,7 @@ var _ = Describe("SwiftService", func() {
 
 		Context("when the code is not found", func() {
 			It("should return not found error", func() {
-				repo := &MockSwiftRepository{
+				repo := &mocks.MockSwiftRepository{
 					DeleteFunc: func(ctx context.Context, code string) error {
 						return repository.ErrNotFound
 					},
@@ -436,7 +391,7 @@ var _ = Describe("SwiftService", func() {
 		Context("when repository returns an error", func() {
 			It("should return the error", func() {
 				expectedError := errors.New("db error")
-				repo := &MockSwiftRepository{
+				repo := &mocks.MockSwiftRepository{
 					DeleteFunc: func(ctx context.Context, code string) error {
 						return expectedError
 					},
@@ -451,7 +406,7 @@ var _ = Describe("SwiftService", func() {
 
 		Context("when called with a lowercase SWIFT code", func() {
 			It("should convert it to uppercase", func() {
-				repo := &MockSwiftRepository{
+				repo := &mocks.MockSwiftRepository{
 					DeleteFunc: func(ctx context.Context, code string) error {
 						if code != "ABCDUS33XXX" {
 							return errors.New("code not properly uppercased")
