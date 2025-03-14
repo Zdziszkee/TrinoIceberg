@@ -1,5 +1,5 @@
 // File: internal/loader/csv_loader.go
-package loader
+package reader
 
 import (
 	"io"

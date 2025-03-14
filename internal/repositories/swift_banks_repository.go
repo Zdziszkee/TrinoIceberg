@@ -313,9 +313,6 @@ func scanBank(scanner interface {
 	return &bank, nil
 }
 
-func min(a, b int) int {
-	if a < b {
-		return a
-	}
-	return b
+func Min(a, b int) int {
+	return min(a, b)
 }

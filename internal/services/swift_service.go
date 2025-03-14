@@ -17,8 +17,9 @@ var (
 	ErrAlreadyExists = errors.New("swift code already exists")
 )
 
-// SWIFT code validation regex
-var swiftCodeRegex = regexp.MustCompile(`^[A-Z]{6}[A-Z0-9]{2}([A-Z0-9]{3})?$`)
+// SWIFT code validation regex - Updated to be more accurate
+// Format: 4 letters (bank code) + 2 letters (country code) + 2 alphanumeric (location) + optional 3 alphanumeric (branch)
+var swiftCodeRegex = regexp.MustCompile(`^[A-Z]{4}[A-Z]{2}[A-Z0-9]{2}([A-Z0-9]{3})?$`)
 var countryCodeRegex = regexp.MustCompile(`^[A-Z]{2}$`)
 
 // SwiftService handles business logic for SWIFT codes
@@ -43,7 +44,10 @@ func NewSwiftService(repo repository.SwiftRepository) SwiftService {
 func (s *swiftService) GetSwiftCodeDetails(ctx context.Context, code string) (*repository.SwiftBankDetail, error) {
 	log.Printf("GetSwiftCodeDetails called with code: %s", code)
 
-	if !swiftCodeRegex.MatchString(strings.ToUpper(code)) {
+	// Convert to uppercase before validation
+	code = strings.ToUpper(code)
+
+	if !swiftCodeRegex.MatchString(code) {
 		log.Printf("Invalid swift code format: %s", code)
 		return nil, ErrInvalidInput
 	}
@@ -64,7 +68,10 @@ func (s *swiftService) GetSwiftCodeDetails(ctx context.Context, code string) (*r
 
 // GetSwiftCodesByCountry retrieves all SWIFT codes for a country
 func (s *swiftService) GetSwiftCodesByCountry(ctx context.Context, countryCode string) (*repository.CountrySwiftCodes, error) {
-	if !countryCodeRegex.MatchString(strings.ToUpper(countryCode)) {
+	// Convert to uppercase before validation
+	countryCode = strings.ToUpper(countryCode)
+
+	if !countryCodeRegex.MatchString(countryCode) {
 		return nil, ErrInvalidInput
 	}
 
@@ -81,13 +88,22 @@ func (s *swiftService) GetSwiftCodesByCountry(ctx context.Context, countryCode s
 
 // CreateSwiftCode adds a new SWIFT code to the database
 func (s *swiftService) CreateSwiftCode(ctx context.Context, bank *models.SwiftBank) error {
+	// Check for nil bank to prevent panic
+	if bank == nil {
+		return ErrInvalidInput
+	}
+
+	// Convert to uppercase before validation
+	bank.SwiftCode = strings.ToUpper(bank.SwiftCode)
+	bank.CountryISOCode = strings.ToUpper(bank.CountryISOCode)
+
 	// Validate SWIFT code
-	if !swiftCodeRegex.MatchString(strings.ToUpper(bank.SwiftCode)) {
+	if !swiftCodeRegex.MatchString(bank.SwiftCode) {
 		return ErrInvalidInput
 	}
 
 	// Validate country code
-	if !countryCodeRegex.MatchString(strings.ToUpper(bank.CountryISOCode)) {
+	if !countryCodeRegex.MatchString(bank.CountryISOCode) {
 		return ErrInvalidInput
 	}
 
@@ -95,10 +111,6 @@ func (s *swiftService) CreateSwiftCode(ctx context.Context, bank *models.SwiftBa
 	if bank.BankName == "" {
 		return ErrInvalidInput
 	}
-
-	// Ensure SWIFT code and country code are uppercase
-	bank.SwiftCode = strings.ToUpper(bank.SwiftCode)
-	bank.CountryISOCode = strings.ToUpper(bank.CountryISOCode)
 
 	// Set headquarter flag based on SWIFT code suffix
 	bank.IsHeadquarter = strings.HasSuffix(bank.SwiftCode, "XXX")
@@ -121,7 +133,10 @@ func (s *swiftService) CreateSwiftCode(ctx context.Context, bank *models.SwiftBa
 
 // DeleteSwiftCode removes a SWIFT code from the database
 func (s *swiftService) DeleteSwiftCode(ctx context.Context, code string) error {
-	if !swiftCodeRegex.MatchString(strings.ToUpper(code)) {
+	// Convert to uppercase before validation
+	code = strings.ToUpper(code)
+
+	if !swiftCodeRegex.MatchString(code) {
 		return ErrInvalidInput
 	}
 
