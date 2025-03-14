@@ -17,3 +17,7 @@ Access to trino container for running queries:
 -> trino
 -> trino:default_schema> use swift_catalog.default_schema;
 -> select * FROM swift_banks limit 10;
+
+Running tests:
+➜  swift-codes git:(main) export PATH=$PATH:$HOME/go/bin
+-> ginkgo -r
