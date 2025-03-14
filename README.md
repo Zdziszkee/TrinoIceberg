@@ -8,8 +8,10 @@ Project can be run through the following steps:
 5. Endpoints should be avaiable on http://localhost:8081/v1/swiftCodes
 
 Example usages:
-http://127.0.0.1:8081/v1/swiftCodes/BSZLPLP1XXX
-http://127.0.0.1:8081/v1/swiftCodes/country/MT
+GET http://127.0.0.1:8081/v1/swiftCodes/BSZLPLP1XXX
+GET http://127.0.0.1:8081/v1/swiftCodes/country/MT
+POST http://127.0.0.1:8081/v1/swiftCodes
+DELETE http://127.0.0.1:8081/v1/swiftCodes/BSZLPLP1XXXA
 
 
 Access to trino container for running queries:
