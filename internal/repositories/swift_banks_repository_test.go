@@ -39,7 +39,11 @@ var _ = Describe("SQLSwiftRepository", func() {
 		Expect(err).NotTo(HaveOccurred())
 
 		db := &database.Database{DB: mockDB}
-		repository = repo.NewSQLSwiftRepository(db)
+		repository = repo.NewSQLSwiftRepository(db, database.Config{
+			Catalog:   "swift_catalog",
+			Schema:    "default_schema",
+			TableName: "swift_banks",
+		})
 		ctx = context.Background()
 
 		sampleBank = &models.SwiftBank{

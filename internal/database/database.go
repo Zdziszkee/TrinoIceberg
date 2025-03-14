@@ -14,14 +14,13 @@ import (
 
 // Config holds configuration for a Trino database connection
 type Config struct {
-	ServerURI         string            `koanf:"server_uri"`
-	Catalog           string            `koanf:"catalog"`
-	Schema            string            `koanf:"schema"`
-	MaxOpenConns      int               `koanf:"max_open_conns"`
-	MaxIdleConns      int               `koanf:"max_idle_conns"`
-	ConnMaxLifetime   time.Duration     `koanf:"conn_max_lifetime"`
-	SessionProperties map[string]string `koanf:"session_properties"`
-	ExtraCredentials  map[string]string `koanf:"extra_credentials"`
+	ServerURI       string        `koanf:"server_uri"`
+	Catalog         string        `koanf:"catalog"`
+	Schema          string        `koanf:"schema"`
+	TableName       string        `koanf:"table_name"`
+	MaxOpenConns    int           `koanf:"max_open_conns"`
+	MaxIdleConns    int           `koanf:"max_idle_conns"`
+	ConnMaxLifetime time.Duration `koanf:"conn_max_lifetime"`
 }
 
 // Database provides a Trino database connection
@@ -34,11 +33,9 @@ type Database struct {
 func New(config Config) (*Database, error) {
 	// Build DSN using trino.Config
 	trinoConfig := trino.Config{
-		ServerURI:         config.ServerURI, // e.g., "http://test:password@localhost:8080"
-		Catalog:           config.Catalog,
-		Schema:            config.Schema,
-		SessionProperties: config.SessionProperties,
-		ExtraCredentials:  config.ExtraCredentials,
+		ServerURI: config.ServerURI, // e.g., "http://test:password@localhost:8080"
+		Catalog:   config.Catalog,
+		Schema:    config.Schema,
 	}
 	dsn, err := trinoConfig.FormatDSN()
 

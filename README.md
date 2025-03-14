@@ -9,6 +9,8 @@ Project can be run through the following steps:
 
 Example usages:
 http://127.0.0.1:8081/v1/swiftCodes/BSZLPLP1XXX
+http://127.0.0.1:8081/v1/swiftCodes/country/MT
+
 
 Access to trino container for running queries:
 -> docker exec -it swift-codes-trino-1  bash

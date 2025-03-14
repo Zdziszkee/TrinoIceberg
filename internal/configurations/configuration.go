@@ -41,14 +41,13 @@ func DefaultConfig() *Config {
 			Format: "text",
 		},
 		Database: database.Config{
-			ServerURI:         "http://test:password@trino:8080",
-			Catalog:           "swift_catalog",
-			Schema:            "default_schema",
-			MaxOpenConns:      5,
-			MaxIdleConns:      2,
-			ConnMaxLifetime:   1 * time.Hour,
-			SessionProperties: map[string]string{},
-			ExtraCredentials:  map[string]string{},
+			ServerURI:       "http://test:password@trino:8080",
+			Catalog:         "swift_catalog",
+			Schema:          "default_schema",
+			TableName:       "swift_banks",
+			MaxOpenConns:    5,
+			MaxIdleConns:    2,
+			ConnMaxLifetime: 1 * time.Hour,
 		},
 		Data: struct {
 			SwiftCodesFile string `koanf:"swift_codes_file"`

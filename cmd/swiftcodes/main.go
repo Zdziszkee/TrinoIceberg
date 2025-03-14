@@ -47,7 +47,7 @@ func main() {
 	defer db.DB.Close()
 
 	// Initialize repository
-	repo := repository.NewSQLSwiftRepository(db)
+	repo := repository.NewSQLSwiftRepository(db, cfg.Database)
 
 	// Initialize service
 	swiftService := service.NewSwiftService(repo)

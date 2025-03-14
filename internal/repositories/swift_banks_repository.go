@@ -44,12 +44,13 @@ type SwiftRepository interface {
 
 // SQLSwiftRepository implements SwiftRepository using Trino via database/sql
 type SQLSwiftRepository struct {
-	db *sql.DB
+	db     *sql.DB
+	config database.Config
 }
 
 // NewSQLSwiftRepository creates a new repository instance with Trino
-func NewSQLSwiftRepository(db *database.Database) SwiftRepository {
-	return &SQLSwiftRepository{db: db.DB}
+func NewSQLSwiftRepository(db *database.Database, config database.Config) SwiftRepository {
+	return &SQLSwiftRepository{db: db.DB, config: config}
 }
 
 const batchSize = 100
@@ -237,7 +238,7 @@ func (r *SQLSwiftRepository) Delete(ctx context.Context, code string) error {
 // Helper methods
 
 func (r *SQLSwiftRepository) tableName() string {
-	return "swift_catalog.default_schema.swift_banks"
+	return fmt.Sprintf("%s.%s.%s", r.config.Catalog, r.config.Schema, r.config.TableName)
 }
 
 func (r *SQLSwiftRepository) getBankByCode(ctx context.Context, code string) (*model.SwiftBank, error) {
