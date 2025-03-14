@@ -13,6 +13,7 @@ import (
 	"github.com/zdziszkee/swift-codes/internal/models"
 	repository "github.com/zdziszkee/swift-codes/internal/repositories"
 	service "github.com/zdziszkee/swift-codes/internal/services"
+	mocks "github.com/zdziszkee/swift-codes/tests/mocks"
 )
 
 func TestServices(t *testing.T) {
