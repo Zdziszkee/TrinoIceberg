@@ -41,11 +41,6 @@ func setupRouter(svc service.SwiftService) *fiber.App {
 	return app
 }
 
-func TestSwiftRouter(t *testing.T) {
-	RegisterFailHandler(Fail)
-	RunSpecs(t, "Swift Router Suite")
-}
-
 var _ = Describe("Swift Router", func() {
 	var (
 		app     *fiber.App

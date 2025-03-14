@@ -1,4 +1,3 @@
-{{REWRITTEN_CODE}}
 package handlers_test
 
 import (
@@ -45,7 +44,6 @@ var _ = Describe("Swift Handler", func() {
 	var (
 		app     *fiber.App
 		mockSvc *mocks.MockSwiftService
-		ctx     = context.Background()
 	)
 
 	BeforeEach(func() {
